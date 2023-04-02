@@ -6,6 +6,14 @@ import os
 from urllib.parse import urljoin, urlsplit
 
 
+def get_commentaries(response):
+    soup = BeautifulSoup(response.text, "lxml")
+    comments_divs = soup.find_all("div", class_="texts")
+    for comment_div in comments_divs:
+        comment = comment_div.find("span")
+        print(comment.text)
+
+
 def download_image(response, book_full_url, file_directory):
     soup = BeautifulSoup(response.text, "lxml")
     img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
@@ -71,6 +79,7 @@ def main():
             book_txt_response = get_book_txt_response(book_index, book_txt_url)
             download_book(book_txt_response, book_name, file_directory)
             download_image(book_response, book_full_url, books_logo_directory)
+            get_commentaries(book_response)
             index += 1
         except requests.HTTPError:
             print(f"book (id={index}) was not found")
