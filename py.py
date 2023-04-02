@@ -6,12 +6,14 @@ import os
 from urllib.parse import urljoin, urlsplit
 
 
-def get_commentaries(response):
+def get_book_commentaries(response, book_name, file_directory):
     soup = BeautifulSoup(response.text, "lxml")
     comments_divs = soup.find_all("div", class_="texts")
-    for comment_div in comments_divs:
-        comment = comment_div.find("span")
-        print(comment.text)
+    file_full_name = os.path.join(file_directory, book_name)
+    with open(file_full_name, 'w') as file:
+        for comment_div in comments_divs:
+            comment = comment_div.find("span")
+            file.write(f"{comment.text}\n")
 
 
 def download_image(response, book_full_url, file_directory):
@@ -68,8 +70,10 @@ def main():
     books_url = "https://tululu.org"
     file_directory = "./books"
     books_logo_directory = "./images"
+    commentaries_directory = "./books_commentaries"
     Path(file_directory).mkdir(parents=True, exist_ok=True)
     Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
+    Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
     index = 0
     for book_index in range(1, 10):
         try:
@@ -77,9 +81,10 @@ def main():
             check_for_redirect(book_response)
             book_name = get_book_name(index, book_response)
             book_txt_response = get_book_txt_response(book_index, book_txt_url)
+            check_for_redirect(book_txt_response)
             download_book(book_txt_response, book_name, file_directory)
             download_image(book_response, book_full_url, books_logo_directory)
-            get_commentaries(book_response)
+            get_book_commentaries(book_response, book_name, commentaries_directory)
             index += 1
         except requests.HTTPError:
             print(f"book (id={index}) was not found")
