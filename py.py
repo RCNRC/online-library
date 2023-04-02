@@ -6,27 +6,52 @@ import os
 from urllib.parse import urljoin, urlsplit
 
 
-def get_book_genre(response):
-    soup = BeautifulSoup(response.text, "lxml")
+def parse_book_page(soup):
+    h_1 = soup.find("td", class_="ow_px_td")\
+        .find("div", id="content")\
+        .find("h1")
+    author = sanitize_filename(h_1.text.split("::")[1].strip())
+    book_dict = {
+        "author": author,
+        "title": get_book_title(soup),
+        "genres": get_book_genre(soup),
+    }
+    print(book_dict)
+    return book_dict
+
+
+def get_book_genre(soup):
     genres_as = soup.find("span", class_="d_book").find_all("a")
     book_genres = []
     for genre_a in genres_as:
         book_genres.append(genre_a.text)
-    print(book_genres)
+    return book_genres
 
 
-def get_book_commentaries(response, book_name, file_directory):
-    soup = BeautifulSoup(response.text, "lxml")
+def get_book_title(soup):
+    h_1 = soup.find("td", class_="ow_px_td")\
+        .find("div", id="content")\
+        .find("h1")
+    title = sanitize_filename(h_1.text.split("::")[0].strip())
+    return title
+
+
+def download_book_commentaries(index, soup, book_name, file_directory):
     comments_divs = soup.find_all("div", class_="texts")
-    file_full_name = os.path.join(file_directory, book_name)
+    file_full_name = os.path.join(file_directory, f"{index}. {book_name}.txt")
     with open(file_full_name, 'w') as file:
         for comment_div in comments_divs:
             comment = comment_div.find("span")
             file.write(f"{comment.text}\n")
 
 
-def download_image(response, book_full_url, file_directory):
-    soup = BeautifulSoup(response.text, "lxml")
+def download_book(index, response, book_name, file_directory):
+    file_full_name = os.path.join(file_directory, f"{index}. {book_name}.txt")
+    with open(file_full_name, 'wb') as file:
+        file.write(response.content)
+
+
+def download_image(soup, response, book_full_url, file_directory):
     img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
     image_path = urljoin(book_full_url, img_src)
     logo_name = urlsplit(image_path).path.split("/")[-1]
@@ -36,26 +61,10 @@ def download_image(response, book_full_url, file_directory):
         file.write(response.content)
 
 
-def get_book_name(index, response):
-    soup = BeautifulSoup(response.text, "lxml")
-    h_1 = soup.find("td", class_="ow_px_td")\
-        .find("div", id="content")\
-        .find("h1")
-    title, author = h_1.text.split("::")
-    title, author = sanitize_filename(title.strip()), sanitize_filename(author.strip())
-    return f"{index}. {title}.txt"
-
-
 def check_for_redirect(response):
     for history_point in response.history:
         if history_point.status_code == 302:
             raise requests.HTTPError
-
-
-def download_book(response, book_name, file_directory):
-    file_full_name = os.path.join(file_directory, book_name)
-    with open(file_full_name, 'wb') as file:
-        file.write(response.content)
 
 
 def get_book_txt_response(book_index, book_txt_url):
@@ -68,12 +77,13 @@ def get_book_txt_response(book_index, book_txt_url):
     return response
 
 
-def get_book_response(books_url, index):
+def get_book_parameters(books_url, index):
     book_full_url = f"{books_url}/b{index}/"
     response = requests.get(book_full_url)
     response.raise_for_status()
     check_for_redirect(response)
-    return response, book_full_url
+    soup = BeautifulSoup(response.text, "lxml")
+    return soup, response, book_full_url
 
 
 def main():
@@ -88,13 +98,26 @@ def main():
     index = 0
     for book_index in range(1, 10):
         try:
-            book_response, book_full_url = get_book_response(books_url, book_index)
-            book_name = get_book_name(index, book_response)
+            soup, book_response, book_full_url = get_book_parameters(
+                books_url,
+                book_index
+            )
+            book_name = get_book_title(soup)
             book_txt_response = get_book_txt_response(book_index, book_txt_url)
-            download_book(book_txt_response, book_name, file_directory)
-            download_image(book_response, book_full_url, books_logo_directory)
-            get_book_commentaries(book_response, book_name, commentaries_directory)
-            get_book_genre(book_response)
+            download_book(index, book_txt_response, book_name, file_directory)
+            download_image(
+                soup,
+                book_response,
+                book_full_url,
+                books_logo_directory
+            )
+            download_book_commentaries(
+                index,
+                soup,
+                book_name,
+                commentaries_directory
+            )
+            parse_book_page(soup)
             index += 1
         except requests.HTTPError:
             print(f"book (id={index}) was not found")
