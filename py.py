@@ -4,6 +4,16 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 import os
 from urllib.parse import urljoin, urlsplit
+import argparse
+
+
+def get_arguments():
+    parser = argparse.ArgumentParser(
+        description="Script downloads books from https://tululu.org"
+    )
+    parser.add_argument('start_id', help="this is start book id")
+    parser.add_argument('end_id', help="this is end book id")
+    return parser.parse_args()
 
 
 def parse_book_page(soup):
@@ -16,7 +26,6 @@ def parse_book_page(soup):
         "title": get_book_title(soup),
         "genres": get_book_genre(soup),
     }
-    print(book_dict)
     return book_dict
 
 
@@ -87,6 +96,7 @@ def get_book_parameters(books_url, index):
 
 
 def main():
+    arguments = get_arguments()
     book_txt_url = "https://tululu.org/txt.php"
     books_url = "https://tululu.org"
     file_directory = "./books"
@@ -96,7 +106,7 @@ def main():
     Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
     Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
     index = 0
-    for book_index in range(1, 10):
+    for book_index in range(int(arguments.start_id), int(arguments.end_id)):
         try:
             soup, book_response, book_full_url = get_book_parameters(
                 books_url,
@@ -120,7 +130,7 @@ def main():
             parse_book_page(soup)
             index += 1
         except requests.HTTPError:
-            print(f"book (id={index}) was not found")
+            print(f"book (id={book_index}) was not found")
 
 
 if __name__ == '__main__':
