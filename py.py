@@ -6,6 +6,15 @@ import os
 from urllib.parse import urljoin, urlsplit
 
 
+def get_book_genre(response):
+    soup = BeautifulSoup(response.text, "lxml")
+    genres_as = soup.find("span", class_="d_book").find_all("a")
+    book_genres = []
+    for genre_a in genres_as:
+        book_genres.append(genre_a.text)
+    print(book_genres)
+
+
 def get_book_commentaries(response, book_name, file_directory):
     soup = BeautifulSoup(response.text, "lxml")
     comments_divs = soup.find_all("div", class_="texts")
@@ -55,6 +64,7 @@ def get_book_txt_response(book_index, book_txt_url):
     }
     response = requests.get(book_txt_url, params=payload)
     response.raise_for_status()
+    check_for_redirect(response)
     return response
 
 
@@ -62,6 +72,7 @@ def get_book_response(books_url, index):
     book_full_url = f"{books_url}/b{index}/"
     response = requests.get(book_full_url)
     response.raise_for_status()
+    check_for_redirect(response)
     return response, book_full_url
 
 
@@ -78,13 +89,12 @@ def main():
     for book_index in range(1, 10):
         try:
             book_response, book_full_url = get_book_response(books_url, book_index)
-            check_for_redirect(book_response)
             book_name = get_book_name(index, book_response)
             book_txt_response = get_book_txt_response(book_index, book_txt_url)
-            check_for_redirect(book_txt_response)
             download_book(book_txt_response, book_name, file_directory)
             download_image(book_response, book_full_url, books_logo_directory)
             get_book_commentaries(book_response, book_name, commentaries_directory)
+            get_book_genre(book_response)
             index += 1
         except requests.HTTPError:
             print(f"book (id={index}) was not found")
