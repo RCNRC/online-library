@@ -26,7 +26,7 @@ py -m pip download --destination-directory DIR -r requirements.txt
 
 Пример запуска:
 ```comandline
-> python3 py.py 10 20
+> python3 parse_tululu.py 10 20
 book (id=14) was not found
 book (id=16) was not found
 book (id=17) was not found
