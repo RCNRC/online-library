@@ -5,6 +5,7 @@ from pathvalidate import sanitize_filename
 import os
 from urllib.parse import urljoin, urlsplit
 import argparse
+import time
 
 
 def get_arguments():
@@ -95,7 +96,7 @@ def get_book_parameters(books_url, index):
     return soup, response, book_full_url
 
 
-def main():
+def main(index=0, failed_attempts=False, start_id=0):
     arguments = get_arguments()
     book_txt_url = "https://tululu.org/txt.php"
     books_url = "https://tululu.org"
@@ -105,8 +106,8 @@ def main():
     Path(file_directory).mkdir(parents=True, exist_ok=True)
     Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
     Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
-    index = 0
-    for book_index in range(arguments.start_id, arguments.end_id):
+    start_id = arguments.start_id if not failed_attempts else start_id
+    for book_index in range(start_id, arguments.end_id):
         try:
             soup, book_response, book_full_url = get_book_parameters(
                 books_url,
@@ -131,6 +132,14 @@ def main():
             index += 1
         except requests.HTTPError:
             print(f"book (id={book_index}) was not found")
+        except requests.ConnectionError:
+            if not failed_attempts:
+                time_sleep = 0.05
+            else:
+                time_sleep = 0.5
+            print("Connection error, trying to reconnect.")
+            time.sleep(time_sleep)
+            main(index, failed_attempts=True, start_id=book_index)
 
 
 if __name__ == '__main__':
