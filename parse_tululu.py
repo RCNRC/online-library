@@ -86,15 +86,6 @@ def get_book_txt_response(book_index, book_txt_url):
     return response
 
 
-def get_book_parameters(books_url, index):
-    book_full_url = f"{books_url}/b{index}/"
-    response = requests.get(book_full_url)
-    response.raise_for_status()
-    check_for_redirect(response)
-    soup = BeautifulSoup(response.text, "lxml")
-    return soup, response, book_full_url
-
-
 def main(index=0, failed_attempts=False, start_id=0):
     arguments = get_arguments()
     book_txt_url = "https://tululu.org/txt.php"
@@ -108,10 +99,12 @@ def main(index=0, failed_attempts=False, start_id=0):
     start_id = arguments.start_id if not failed_attempts else start_id
     for book_index in range(start_id, arguments.end_id):
         try:
-            soup, book_response, book_full_url = get_book_parameters(
-                books_url,
-                book_index
-            )
+            book_full_url = f"{books_url}/b{index}/"
+            book_response = requests.get(book_full_url)
+            book_response.raise_for_status()
+            check_for_redirect(book_response)
+            soup = BeautifulSoup(book_response.text, "lxml")
+
             book_name = get_book_title(soup)
             book_txt_response = get_book_txt_response(book_index, book_txt_url)
             download_book(index, book_txt_response, book_name, file_directory)
