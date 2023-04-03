@@ -30,14 +30,14 @@ def parse_book_page(soup):
     book_info = {
         "author": author,
         "title": get_book_title(soup),
-        "genres": get_book_genre(soup),
+        "genres": get_book_genres(soup),
         "img_src": img_src,
         "comments_texts": comments_texts,
     }
     return book_info
 
 
-def get_book_genre(soup):
+def get_book_genres(soup):
     genres_as = soup.find("span", class_="d_book").find_all("a")
     book_genres = []
     for genre_a in genres_as:
