@@ -55,7 +55,13 @@ def download_book_commentaries(index, soup, book_name, file_directory):
             file.write(f"{comment.text}\n")
 
 
-def download_book(index, response, book_name, file_directory):
+def download_book(index, book_name, file_directory, book_index, book_txt_url):
+    payload = {
+        "id": f"{book_index}"
+    }
+    response = requests.get(book_txt_url, params=payload)
+    response.raise_for_status()
+    check_for_redirect(response)
     file_full_name = os.path.join(file_directory, f"{index}. {book_name}.txt")
     with open(file_full_name, 'wb') as file:
         file.write(response.content)
@@ -76,16 +82,6 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def get_book_txt_response(book_index, book_txt_url):
-    payload = {
-        "id": f"{book_index}"
-    }
-    response = requests.get(book_txt_url, params=payload)
-    response.raise_for_status()
-    check_for_redirect(response)
-    return response
-
-
 def main(index=0, failed_attempts=False, start_id=0):
     arguments = get_arguments()
     book_txt_url = "https://tululu.org/txt.php"
@@ -99,15 +95,20 @@ def main(index=0, failed_attempts=False, start_id=0):
     start_id = arguments.start_id if not failed_attempts else start_id
     for book_index in range(start_id, arguments.end_id):
         try:
-            book_full_url = f"{books_url}/b{index}/"
+            book_full_url = f"{books_url}/b{book_index}/"
             book_response = requests.get(book_full_url)
             book_response.raise_for_status()
             check_for_redirect(book_response)
             soup = BeautifulSoup(book_response.text, "lxml")
 
             book_name = get_book_title(soup)
-            book_txt_response = get_book_txt_response(book_index, book_txt_url)
-            download_book(index, book_txt_response, book_name, file_directory)
+            download_book(
+                index,
+                book_name,
+                file_directory,
+                book_index,
+                book_txt_url
+            )
             download_image(
                 soup,
                 book_response,
