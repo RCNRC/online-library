@@ -22,10 +22,17 @@ def parse_book_page(soup):
         .find("div", id="content")\
         .find("h1")
     author = sanitize_filename(h_1.text.split("::")[1].strip())
+    img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
+    comments_divs = soup.find_all("div", class_="texts")
+    comments_texts = []
+    for comment_div in comments_divs:
+        comments_texts.append(comment_div.find("span").text)
     book_dict = {
         "author": author,
         "title": get_book_title(soup),
         "genres": get_book_genre(soup),
+        "img_src": img_src,
+        "comments_texts": comments_texts,
     }
     return book_dict
 
@@ -47,12 +54,11 @@ def get_book_title(soup):
 
 
 def download_book_commentaries(index, soup, book_name, file_directory):
-    comments_divs = soup.find_all("div", class_="texts")
+    comments_texts = parse_book_page(soup)["comments_texts"]
     file_full_name = os.path.join(file_directory, f"{index}. {book_name}.txt")
     with open(file_full_name, 'w') as file:
-        for comment_div in comments_divs:
-            comment = comment_div.find("span")
-            file.write(f"{comment.text}\n")
+        for comment_text in comments_texts:
+            file.write(f"{comment_text}\n")
 
 
 def download_book(index, book_name, file_directory, book_index, book_txt_url):
@@ -68,10 +74,10 @@ def download_book(index, book_name, file_directory, book_index, book_txt_url):
 
 
 def download_image(soup, response, book_full_url, file_directory):
-    img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
+    img_src = parse_book_page(soup)["img_src"]
     image_path = urljoin(book_full_url, img_src)
     logo_name = urlsplit(image_path).path.split("/")[-1]
-    
+
     file_full_name = os.path.join(file_directory, logo_name)
     with open(file_full_name, 'wb') as file:
         file.write(response.content)
@@ -121,7 +127,6 @@ def main(index=0, failed_attempts=False, start_id=0):
                 book_name,
                 commentaries_directory
             )
-            parse_book_page(soup)
             index += 1
         except requests.HTTPError:
             print(f"book (id={book_index}) was not found")
