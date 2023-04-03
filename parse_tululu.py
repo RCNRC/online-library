@@ -72,9 +72,8 @@ def download_image(soup, response, book_full_url, file_directory):
 
 
 def check_for_redirect(response):
-    for history_point in response.history:
-        if history_point.status_code == 302:
-            raise requests.HTTPError
+    if response.history:
+        raise requests.HTTPError
 
 
 def get_book_txt_response(book_index, book_txt_url):
