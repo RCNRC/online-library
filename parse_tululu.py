@@ -11,8 +11,8 @@ def get_arguments():
     parser = argparse.ArgumentParser(
         description="Script downloads books from https://tululu.org"
     )
-    parser.add_argument('start_id', help="this is start book id")
-    parser.add_argument('end_id', help="this is end book id")
+    parser.add_argument('start_id', help="this is start book id", type=int)
+    parser.add_argument('end_id', help="this is end book id", type=int)
     return parser.parse_args()
 
 
@@ -106,7 +106,7 @@ def main():
     Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
     Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
     index = 0
-    for book_index in range(int(arguments.start_id), int(arguments.end_id)):
+    for book_index in range(arguments.start_id, arguments.end_id):
         try:
             soup, book_response, book_full_url = get_book_parameters(
                 books_url,
