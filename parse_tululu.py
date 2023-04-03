@@ -27,14 +27,14 @@ def parse_book_page(soup):
     comments_texts = []
     for comment_div in comments_divs:
         comments_texts.append(comment_div.find("span").text)
-    book_dict = {
+    book_info = {
         "author": author,
         "title": get_book_title(soup),
         "genres": get_book_genre(soup),
         "img_src": img_src,
         "comments_texts": comments_texts,
     }
-    return book_dict
+    return book_info
 
 
 def get_book_genre(soup):
