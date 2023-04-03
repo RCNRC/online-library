@@ -53,22 +53,28 @@ def get_book_title(soup):
     return title
 
 
-def download_book_commentaries(index, soup, book_name, file_directory):
+def download_book_commentaries(book_index, soup, book_name, file_directory):
     comments_texts = parse_book_page(soup)["comments_texts"]
-    file_full_name = os.path.join(file_directory, f"{index}. {book_name}.txt")
+    file_full_name = os.path.join(
+        file_directory,
+        f"{book_index}. {book_name}.txt"
+    )
     with open(file_full_name, 'w') as file:
         for comment_text in comments_texts:
             file.write(f"{comment_text}\n")
 
 
-def download_book(index, book_name, file_directory, book_index, book_txt_url):
+def download_book(book_name, file_directory, book_index, book_txt_url):
     payload = {
         "id": f"{book_index}"
     }
     response = requests.get(book_txt_url, params=payload)
     response.raise_for_status()
     check_for_redirect(response)
-    file_full_name = os.path.join(file_directory, f"{index}. {book_name}.txt")
+    file_full_name = os.path.join(
+        file_directory,
+        f"{book_index}. {book_name}.txt"
+    )
     with open(file_full_name, 'wb') as file:
         file.write(response.content)
 
@@ -88,7 +94,7 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def main(index=0, failed_attempts=False, start_id=0):
+def main(failed_attempts=False, start_id=0):
     arguments = get_arguments()
     book_txt_url = "https://tululu.org/txt.php"
     books_url = "https://tululu.org"
@@ -109,7 +115,6 @@ def main(index=0, failed_attempts=False, start_id=0):
 
             book_name = get_book_title(soup)
             download_book(
-                index,
                 book_name,
                 file_directory,
                 book_index,
@@ -122,12 +127,11 @@ def main(index=0, failed_attempts=False, start_id=0):
                 books_logo_directory
             )
             download_book_commentaries(
-                index,
+                book_index,
                 soup,
                 book_name,
                 commentaries_directory
             )
-            index += 1
         except requests.HTTPError:
             print(f"book (id={book_index}) was not found")
         except requests.ConnectionError:
@@ -137,7 +141,7 @@ def main(index=0, failed_attempts=False, start_id=0):
                 time_sleep = 0.5
             print("Connection error, trying to reconnect.")
             time.sleep(time_sleep)
-            main(index, failed_attempts=True, start_id=book_index)
+            main(failed_attempts=True, start_id=book_index)
 
 
 if __name__ == '__main__':
