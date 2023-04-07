@@ -53,18 +53,17 @@ def get_book_title(soup):
     return title
 
 
-def download_book_commentaries(book_index, soup, book_name, file_directory):
-    comments_texts = parse_book_page(soup)["comments_texts"]
+def download_book_commentaries(book_info, book_index, file_directory):
     file_full_name = os.path.join(
         file_directory,
-        f"{book_index}. {book_name}.txt"
+        f"{book_index}. {book_info['title']}.txt"
     )
     with open(file_full_name, 'w') as file:
-        for comment_text in comments_texts:
+        for comment_text in book_info["comments_texts"]:
             file.write(f"{comment_text}\n")
 
 
-def download_book(book_name, file_directory, book_index, book_txt_url):
+def download_book(book_info, file_directory, book_index, book_txt_url):
     payload = {
         "id": f"{book_index}"
     }
@@ -73,15 +72,14 @@ def download_book(book_name, file_directory, book_index, book_txt_url):
     check_for_redirect(response)
     file_full_name = os.path.join(
         file_directory,
-        f"{book_index}. {book_name}.txt"
+        f"{book_index}. {book_info['title']}.txt"
     )
     with open(file_full_name, 'wb') as file:
         file.write(response.content)
 
 
-def download_image(soup, response, book_full_url, file_directory):
-    img_src = parse_book_page(soup)["img_src"]
-    image_path = urljoin(book_full_url, img_src)
+def download_image(book_info, response, book_full_url, file_directory):
+    image_path = urljoin(book_full_url, book_info["img_src"])
     logo_name = urlsplit(image_path).path.split("/")[-1]
 
     file_full_name = os.path.join(file_directory, logo_name)
@@ -112,24 +110,23 @@ def main(failed_attempts=False, start_id=0):
             book_response.raise_for_status()
             check_for_redirect(book_response)
             soup = BeautifulSoup(book_response.text, "lxml")
+            book_info = parse_book_page(soup)
 
-            book_name = get_book_title(soup)
             download_book(
-                book_name,
+                book_info,
                 file_directory,
                 book_index,
                 book_txt_url
             )
             download_image(
-                soup,
+                book_info,
                 book_response,
                 book_full_url,
                 books_logo_directory
             )
             download_book_commentaries(
+                book_info,
                 book_index,
-                soup,
-                book_name,
                 commentaries_directory
             )
         except requests.HTTPError:
