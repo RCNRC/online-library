@@ -21,8 +21,10 @@ def parse_book_page(soup):
     title_author_h = soup.find("td", class_="ow_px_td")\
         .find("div", id="content")\
         .find("h1")
-    author = sanitize_filename(title_author_h.text.split("::")[1].strip())
-    title = sanitize_filename(title_author_h.text.split("::")[0].strip())
+    title, author = (
+        sanitize_filename(text.strip())
+        for text in title_author_h.text.split("::")
+        )
     img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
     comments_divs = soup.find_all("div", class_="texts")
     comments_texts = [
