@@ -22,33 +22,22 @@ def parse_book_page(soup):
         .find("div", id="content")\
         .find("h1")
     author = sanitize_filename(title_author_h.text.split("::")[1].strip())
+    title = sanitize_filename(title_author_h.text.split("::")[0].strip())
     img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
     comments_divs = soup.find_all("div", class_="texts")
     comments_texts = [
         comment_div.find("span").text for comment_div in comments_divs
         ]
+    genres_as = soup.find("span", class_="d_book").find_all("a")
+    book_genres = [genre_a.text for genre_a in genres_as]
     book_info = {
         "author": author,
-        "title": get_book_title(soup),
-        "genres": get_book_genres(soup),
+        "title": title,
+        "genres": book_genres,
         "img_src": img_src,
         "comments_texts": comments_texts,
     }
     return book_info
-
-
-def get_book_genres(soup):
-    genres_as = soup.find("span", class_="d_book").find_all("a")
-    book_genres = [genre_a.text for genre_a in genres_as]
-    return book_genres
-
-
-def get_book_title(soup):
-    title_author_h = soup.find("td", class_="ow_px_td")\
-        .find("div", id="content")\
-        .find("h1")
-    title = sanitize_filename(title_author_h.text.split("::")[0].strip())
-    return title
 
 
 def download_book_commentaries(book_info, book_index, file_directory):
