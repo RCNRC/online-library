@@ -18,10 +18,10 @@ def get_arguments():
 
 
 def parse_book_page(soup):
-    h_1 = soup.find("td", class_="ow_px_td")\
+    title_author_h = soup.find("td", class_="ow_px_td")\
         .find("div", id="content")\
         .find("h1")
-    author = sanitize_filename(h_1.text.split("::")[1].strip())
+    author = sanitize_filename(title_author_h.text.split("::")[1].strip())
     img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
     comments_divs = soup.find_all("div", class_="texts")
     comments_texts = [
@@ -44,10 +44,10 @@ def get_book_genres(soup):
 
 
 def get_book_title(soup):
-    h_1 = soup.find("td", class_="ow_px_td")\
+    title_author_h = soup.find("td", class_="ow_px_td")\
         .find("div", id="content")\
         .find("h1")
-    title = sanitize_filename(h_1.text.split("::")[0].strip())
+    title = sanitize_filename(title_author_h.text.split("::")[0].strip())
     return title
 
 
