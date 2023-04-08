@@ -12,8 +12,8 @@ def get_arguments():
     parser = argparse.ArgumentParser(
         description="Script downloads books from https://tululu.org"
     )
-    parser.add_argument('start_id', help="this is start book id", type=int)
-    parser.add_argument('end_id', help="this is end book id", type=int)
+    parser.add_argument("start_id", help="this is start book id", type=int)
+    parser.add_argument("end_id", help="this is end book id", type=int)
     return parser.parse_args()
 
 
@@ -47,7 +47,7 @@ def download_book_commentaries(book, book_index, file_directory):
         file_directory,
         f"{book_index}. {book['title']}.txt"
     )
-    with open(file_full_name, 'w') as file:
+    with open(file_full_name, "w") as file:
         for comment_text in book["comments_texts"]:
             file.write(f"{comment_text}\n")
 
@@ -63,7 +63,7 @@ def download_book(book, file_directory, book_index, book_txt_url):
         file_directory,
         f"{book_index}. {book['title']}.txt"
     )
-    with open(file_full_name, 'wb') as file:
+    with open(file_full_name, "wb") as file:
         file.write(response.content)
 
 
@@ -72,7 +72,7 @@ def download_image(book, response, book_full_url, file_directory):
     logo_name = urlsplit(image_path).path.split("/")[-1]
 
     file_full_name = os.path.join(file_directory, logo_name)
-    with open(file_full_name, 'wb') as file:
+    with open(file_full_name, "wb") as file:
         file.write(response.content)
 
 
@@ -131,5 +131,5 @@ def main(failed_attempts=False, start_id=0):
             main(failed_attempts=True, start_id=book_index)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
