@@ -82,13 +82,13 @@ def check_for_redirect(response):
 
 
 def main(failed_attempts=False, start_id=0):
+    book_txt_url = "https://tululu.org/txt.php"
+    books_url = "https://tululu.org"
+    file_directory = "./books"
+    books_logo_directory = "./images"
+    commentaries_directory = "./books_commentaries"
     if not failed_attempts:
         arguments = get_arguments()
-        book_txt_url = "https://tululu.org/txt.php"
-        books_url = "https://tululu.org"
-        file_directory = "./books"
-        books_logo_directory = "./images"
-        commentaries_directory = "./books_commentaries"
         Path(file_directory).mkdir(parents=True, exist_ok=True)
         Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
         Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
