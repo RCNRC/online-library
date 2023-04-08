@@ -6,6 +6,16 @@ import os
 from urllib.parse import urljoin, urlsplit
 import argparse
 import time
+from dataclasses import dataclass
+
+
+@dataclass
+class Book:
+    author: str
+    title: str
+    book_genres: list
+    img_src: str
+    comments_texts: list
 
 
 def get_arguments():
@@ -17,7 +27,7 @@ def get_arguments():
     return parser.parse_args()
 
 
-def parse_book_page(soup):
+def parse_book_page(soup) -> Book:
     title_author_h = soup.find("td", class_="ow_px_td")\
         .find("div", id="content")\
         .find("h1")
@@ -32,27 +42,20 @@ def parse_book_page(soup):
         ]
     genres_as = soup.find("span", class_="d_book").find_all("a")
     book_genres = [genre_a.text for genre_a in genres_as]
-    book = {
-        "author": author,
-        "title": title,
-        "genres": book_genres,
-        "img_src": img_src,
-        "comments_texts": comments_texts,
-    }
-    return book
+    return Book(author, title, book_genres, img_src, comments_texts)
 
 
-def download_book_commentaries(book, book_index, file_directory):
+def download_book_commentaries(book: Book, book_index, file_directory):
     file_full_name = os.path.join(
         file_directory,
-        f"{book_index}. {book['title']}.txt"
+        f"{book_index}. {book.title}.txt"
     )
     with open(file_full_name, "w") as file:
-        for comment_text in book["comments_texts"]:
+        for comment_text in book.comments_texts:
             file.write(f"{comment_text}\n")
 
 
-def download_book(book, file_directory, book_index, book_txt_url):
+def download_book(book: Book, file_directory, book_index, book_txt_url):
     payload = {
         "id": f"{book_index}"
     }
@@ -61,14 +64,14 @@ def download_book(book, file_directory, book_index, book_txt_url):
     check_for_redirect(response)
     file_full_name = os.path.join(
         file_directory,
-        f"{book_index}. {book['title']}.txt"
+        f"{book_index}. {book.title}.txt"
     )
     with open(file_full_name, "wb") as file:
         file.write(response.content)
 
 
-def download_image(book, response, book_full_url, file_directory):
-    image_path = urljoin(book_full_url, book["img_src"])
+def download_image(book: Book, response, book_full_url, file_directory):
+    image_path = urljoin(book_full_url, book.img_src)
     logo_name = urlsplit(image_path).path.split("/")[-1]
 
     file_full_name = os.path.join(file_directory, logo_name)
@@ -78,7 +81,7 @@ def download_image(book, response, book_full_url, file_directory):
 
 def check_for_redirect(response):
     if response.history:
-        raise requests.HTTPError
+        raise requests.HTTPErrorbook_response
 
 
 def main(failed_attempts=False, start_id=0):
