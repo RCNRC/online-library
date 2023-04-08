@@ -81,57 +81,61 @@ def download_image(book: Book, response, book_full_url, file_directory):
 
 def check_for_redirect(response):
     if response.history:
-        raise requests.HTTPErrorbook_response
+        raise requests.HTTPError
 
 
-def main(failed_attempts=False, start_id=0):
+def main():
     book_txt_url = "https://tululu.org/txt.php"
     books_url = "https://tululu.org"
     file_directory = "./books"
     books_logo_directory = "./images"
     commentaries_directory = "./books_commentaries"
-    if not failed_attempts:
-        arguments = get_arguments()
-        Path(file_directory).mkdir(parents=True, exist_ok=True)
-        Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
-        Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
-        start_id = arguments.start_id
-    for book_index in range(start_id, arguments.end_id):
-        try:
-            book_full_url = f"{books_url}/b{book_index}/"
-            book_response = requests.get(book_full_url)
-            book_response.raise_for_status()
-            check_for_redirect(book_response)
-            soup = BeautifulSoup(book_response.text, "lxml")
-            book = parse_book_page(soup)
+    arguments = get_arguments()
+    Path(file_directory).mkdir(parents=True, exist_ok=True)
+    Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
+    Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
+    failed_attempts = False
+    for book_index in range(arguments.start_id, arguments.end_id):
+        while True:
+            try:
+                book_full_url = f"{books_url}/b{book_index}/"
+                book_response = requests.get(book_full_url)
+                book_response.raise_for_status()
+                check_for_redirect(book_response)
+                soup = BeautifulSoup(book_response.text, "lxml")
+                book = parse_book_page(soup)
 
-            download_book(
-                book,
-                file_directory,
-                book_index,
-                book_txt_url
-            )
-            download_image(
-                book,
-                book_response,
-                book_full_url,
-                books_logo_directory
-            )
-            download_book_commentaries(
-                book,
-                book_index,
-                commentaries_directory
-            )
-        except requests.HTTPError:
-            print(f"book (id={book_index}) was not found")
-        except requests.ConnectionError:
-            if not failed_attempts:
-                time_sleep = 0.05
-            else:
-                time_sleep = 0.5
-            print("Connection error, trying to reconnect.")
-            time.sleep(time_sleep)
-            main(failed_attempts=True, start_id=book_index)
+                download_book(
+                    book,
+                    file_directory,
+                    book_index,
+                    book_txt_url
+                )
+                download_image(
+                    book,
+                    book_response,
+                    book_full_url,
+                    books_logo_directory
+                )
+                download_book_commentaries(
+                    book,
+                    book_index,
+                    commentaries_directory
+                )
+                failed_attempts = False
+                break
+            except requests.HTTPError:
+                print(f"book (id={book_index}) was not found")
+                failed_attempts = False
+                break
+            except requests.ConnectionError:
+                if not failed_attempts:
+                    time_sleep = 0.05
+                    failed_attempts = True
+                else:
+                    time_sleep = 0.5
+                print("Connection error, trying to reconnect.")
+                time.sleep(time_sleep)
 
 
 if __name__ == "__main__":
