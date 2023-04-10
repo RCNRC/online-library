@@ -22,16 +22,46 @@ def get_arguments(category_url):
         description="Script downloads books from https://tululu.org"
     )
     parser.add_argument(
-        "start_page",
-        help="this is start book id",
-        type=int,
-        default=0,
+        "--dest_folder",
+        required=False,
+        help="directory for results of downloading",
+        type=str,
+        default=".",
     )
     parser.add_argument(
-        "end_page",
+        "--start_page",
+        required=False,
+        help="this is start book id",
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        "--end_page",
+        required=False,
         help="this is end book id",
         type=int,
         default=last_page,
+    )
+    parser.add_argument(
+        "--skip_imgs",
+        required=False,
+        help="if 'True' then dont download books images",
+        type=bool,
+        default=False,
+    )
+    parser.add_argument(
+        "--skip_txt",
+        required=False,
+        help="if 'True' then dont download books texts",
+        type=bool,
+        default=False,
+    )
+    parser.add_argument(
+        "--json_path",
+        required=False,
+        help="directory for results in json format",
+        type=str,
+        default=".",
     )
     return parser.parse_args()
 
@@ -49,17 +79,22 @@ def get_books_urls_on_page(page, books_base_url, category_url):
 
 
 def main():
-    book_txt_url = "https://tululu.org/txt.php"
-    file_directory = "./books"
-    books_logo_directory = "./images"
-    commentaries_directory = "./books_commentaries"
-    Path(file_directory).mkdir(parents=True, exist_ok=True)
-    Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
-    Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
     fantasy_category_url = "https://tululu.org/l55/"
     books_url = "https://tululu.org"
-    failed_attempts = False
     arguments = get_arguments(fantasy_category_url)
+    json_reults_directory = arguments.json_path
+    if json_reults_directory != ".":
+        Path(json_reults_directory).mkdir(parents=True, exist_ok=True)
+    if not arguments.skip_txt:
+        book_txt_url = "https://tululu.org/txt.php"
+        file_directory = f"{arguments.dest_folder}/books"
+        Path(file_directory).mkdir(parents=True, exist_ok=True)
+    if not arguments.skip_imgs:
+        books_logo_directory = f"{arguments.dest_folder}/images"
+        Path(books_logo_directory).mkdir(parents=True, exist_ok=True)
+    commentaries_directory = f"{arguments.dest_folder}/books_commentaries"
+    Path(commentaries_directory).mkdir(parents=True, exist_ok=True)
+    failed_attempts = False
     books_urls = []
     for page in range(arguments.start_page, arguments.end_page):
         while True:
@@ -95,18 +130,20 @@ def main():
                 soup = BeautifulSoup(book_response.text, "lxml")
                 book = parse_book_page(soup)
 
-                download_book(
-                    book,
-                    file_directory,
-                    book_index,
-                    book_txt_url
-                )
-                download_image(
-                    book,
-                    book_response,
-                    book_url,
-                    books_logo_directory
-                )
+                if not arguments.skip_txt:
+                    download_book(
+                        book,
+                        file_directory,
+                        book_index,
+                        book_txt_url
+                    )
+                if not arguments.skip_imgs:
+                    download_image(
+                        book,
+                        book_response,
+                        book_url,
+                        books_logo_directory
+                    )
                 download_book_commentaries(
                     book,
                     book_index,
@@ -132,7 +169,7 @@ def main():
                 time.sleep(time_sleep)
 
     capitals_json = json.dumps(books, ensure_ascii=False).encode('utf8')
-    with open("books.json", "w") as my_file:
+    with open(f"{json_reults_directory}/books.json", "w") as my_file:
         my_file.write(capitals_json.decode())
 
 
