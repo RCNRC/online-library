@@ -104,7 +104,6 @@ def main():
                     books_base_url=books_url,
                     category_url=fantasy_category_url,
                 ))
-                print(books_urls)
                 failed_attempts = False
                 break
             except requests.HTTPError:
