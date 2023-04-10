@@ -171,8 +171,8 @@ def main():
                 time.sleep(time_sleep)
 
     capitals_json = json.dumps(books, ensure_ascii=False).encode('utf8')
-    with open(f"{json_reults_directory}/books.json", "w") as my_file:
-        my_file.write(capitals_json.decode())
+    with open(f"{json_reults_directory}/books.json", "w") as file:
+        file.write(capitals_json.decode())
 
 
 if __name__ == "__main__":
