@@ -170,9 +170,8 @@ def main():
                 print("Connection error, trying to reconnect.")
                 time.sleep(time_sleep)
 
-    capitals_json = json.dumps(books, ensure_ascii=False).encode('utf8')
     with open(f"{json_reults_directory}/books.json", "w") as file:
-        file.write(capitals_json.decode())
+        json.dump(books, file, ensure_ascii=False)
 
 
 if __name__ == "__main__":
