@@ -11,17 +11,16 @@ from dataclasses import asdict
 
 def get_books_urls(books_base_url, category_url):
     books_urls = []
-
     for i in range(1, 5):
         response = requests.get(f"{category_url}/{i}")
         response.raise_for_status()
         check_for_redirect(response)
         soup = BeautifulSoup(response.text, "lxml")
-        books_tables = soup.find_all("table", class_="d_book")
-
-        for book_table in books_tables:
-            book_id = book_table.find("div", class_="bookimage").find("a")["href"]
-            books_urls.append(f"{books_base_url}{book_id}")
+        books_ids_selector = ".d_book .bookimage a"
+        books_urls.extend([
+            f"{books_base_url}{book_id['href']}"
+            for book_id in soup.select(books_ids_selector)
+        ])
     return books_urls
 
 

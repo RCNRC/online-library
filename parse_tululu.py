@@ -28,20 +28,20 @@ def get_arguments():
 
 
 def parse_book_page(soup) -> Book:
-    title_author_h = soup.find("td", class_="ow_px_td")\
-        .find("div", id="content")\
-        .find("h1")
+    title_author_h_selector = ".ow_px_td div[id=content] h1"
     title, author = (
         sanitize_filename(text.strip())
-        for text in title_author_h.text.split("::")
+        for text in soup.select_one(title_author_h_selector).text.split("::")
         )
-    img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
-    comments_divs = soup.find_all("div", class_="texts")
+    img_selector = ".bookimage a img"
+    img_src = soup.select_one(img_selector)["src"]
+    comments_spans_selector = ".texts span"
     comments = [
-        comment_div.find("span").text for comment_div in comments_divs
-        ]
-    genres_as = soup.find("span", class_="d_book").find_all("a")
-    genres = [genre_a.text for genre_a in genres_as]
+        comment_span.text
+        for comment_span in soup.select(comments_spans_selector)
+    ]
+    genres_as_selector = "span.d_book a"
+    genres = [genre_a.text for genre_a in soup.select(genres_as_selector)]
     return Book(title, author, img_src, comments, genres)
 
 
