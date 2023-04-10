@@ -7,21 +7,45 @@ import time
 import json
 from pathlib import Path
 from dataclasses import asdict
+import argparse
 
 
-def get_books_urls(books_base_url, category_url):
-    books_urls = []
-    for i in range(1, 5):
-        response = requests.get(f"{category_url}/{i}")
-        response.raise_for_status()
-        check_for_redirect(response)
-        soup = BeautifulSoup(response.text, "lxml")
-        books_ids_selector = ".d_book .bookimage a"
-        books_urls.extend([
-            f"{books_base_url}{book_id['href']}"
-            for book_id in soup.select(books_ids_selector)
-        ])
-    return books_urls
+def get_arguments(category_url):
+    response = requests.get(f"{category_url}/1")
+    response.raise_for_status()
+    check_for_redirect(response)
+    soup = BeautifulSoup(response.text, "lxml")
+    available_pages = "a.npage"
+    last_page = int(soup.select(available_pages)[-1].text)
+
+    parser = argparse.ArgumentParser(
+        description="Script downloads books from https://tululu.org"
+    )
+    parser.add_argument(
+        "start_page",
+        help="this is start book id",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
+        "end_page",
+        help="this is end book id",
+        type=int,
+        default=last_page,
+    )
+    return parser.parse_args()
+
+
+def get_books_urls_on_page(page, books_base_url, category_url):
+    response = requests.get(f"{category_url}/{page}")
+    response.raise_for_status()
+    check_for_redirect(response)
+    soup = BeautifulSoup(response.text, "lxml")
+    books_ids_selector = ".d_book .bookimage a"
+    return [
+        f"{books_base_url}{book_id['href']}"
+        for book_id in soup.select(books_ids_selector)
+    ]
 
 
 def main():
@@ -35,27 +59,31 @@ def main():
     fantasy_category_url = "https://tululu.org/l55/"
     books_url = "https://tululu.org"
     failed_attempts = False
-    while True:
-        try:
-            books_urls = get_books_urls(
-                books_base_url=books_url,
-                category_url=fantasy_category_url
-            )
-            print(books_urls)
-            failed_attempts = False
-            break
-        except requests.HTTPError:
-            print("Redirect for books category")
-            failed_attempts = False
-            break
-        except requests.ConnectionError:
-            if not failed_attempts:
-                time_sleep = 0.05
-                failed_attempts = True
-            else:
-                time_sleep = 0.5
-            print("Connection error, trying to reconnect.")
-            time.sleep(time_sleep)
+    arguments = get_arguments(fantasy_category_url)
+    books_urls = []
+    for page in range(arguments.start_page, arguments.end_page):
+        while True:
+            try:
+                books_urls.extend(get_books_urls_on_page(
+                    page,
+                    books_base_url=books_url,
+                    category_url=fantasy_category_url,
+                ))
+                print(books_urls)
+                failed_attempts = False
+                break
+            except requests.HTTPError:
+                print("Redirect for books category")
+                failed_attempts = False
+                break
+            except requests.ConnectionError:
+                if not failed_attempts:
+                    time_sleep = 0.05
+                    failed_attempts = True
+                else:
+                    time_sleep = 0.5
+                print("Connection error, trying to reconnect.")
+                time.sleep(time_sleep)
 
     books = []
     for book_index, book_url in enumerate(books_urls):
