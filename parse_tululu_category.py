@@ -149,10 +149,12 @@ def main():
                     book_index,
                     commentaries_directory
                 )
-                book = asdict(book)
-                book["img_src"] = f"images/{book['img_src'].split('/')[-1]}"
-                book["book_path"] = f"books/{book_index}. {book['title']}.txt"
-                books.append(book)
+                book_for_json = asdict(book)
+                book_for_json["img_src"] = f"images/"\
+                    f"{book_for_json['img_src'].split('/')[-1]}"
+                book_for_json["book_path"] = f"books/{book_index}."\
+                    f"{book_for_json['title']}.txt"
+                books.append(book_for_json)
                 failed_attempts = False
                 break
             except requests.HTTPError:
