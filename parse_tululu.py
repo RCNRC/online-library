@@ -11,11 +11,11 @@ from dataclasses import dataclass
 
 @dataclass
 class Book:
-    author: str
     title: str
-    book_genres: list
+    author: str
     img_src: str
-    comments_texts: list
+    comments: list
+    genres: list
 
 
 def get_arguments():
@@ -37,12 +37,12 @@ def parse_book_page(soup) -> Book:
         )
     img_src = soup.find("div", class_="bookimage").find("a").find("img")["src"]
     comments_divs = soup.find_all("div", class_="texts")
-    comments_texts = [
+    comments = [
         comment_div.find("span").text for comment_div in comments_divs
         ]
     genres_as = soup.find("span", class_="d_book").find_all("a")
-    book_genres = [genre_a.text for genre_a in genres_as]
-    return Book(author, title, book_genres, img_src, comments_texts)
+    genres = [genre_a.text for genre_a in genres_as]
+    return Book(title, author, img_src, comments, genres)
 
 
 def download_book_commentaries(book: Book, book_index, file_directory):
@@ -51,7 +51,7 @@ def download_book_commentaries(book: Book, book_index, file_directory):
         f"{book_index}. {book.title}.txt"
     )
     with open(file_full_name, "w") as file:
-        for comment_text in book.comments_texts:
+        for comment_text in book.comments:
             file.write(f"{comment_text}\n")
 
 
