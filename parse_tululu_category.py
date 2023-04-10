@@ -48,15 +48,13 @@ def get_arguments(last_page):
         "--skip_imgs",
         required=False,
         help="if 'True' then dont download books images",
-        type=bool,
-        default=False,
+        action='store_true',
     )
     parser.add_argument(
         "--skip_txt",
         required=False,
         help="if 'True' then dont download books texts",
-        type=bool,
-        default=False,
+        action='store_true',
     )
     parser.add_argument(
         "--json_path",
