@@ -10,14 +10,16 @@ from dataclasses import asdict
 import argparse
 
 
-def get_arguments(category_url):
+def get_last_page_number(category_url):
     response = requests.get(f"{category_url}/1")
     response.raise_for_status()
     check_for_redirect(response)
     soup = BeautifulSoup(response.text, "lxml")
     available_pages = "a.npage"
-    last_page = int(soup.select(available_pages)[-1].text)
+    return int(soup.select(available_pages)[-1].text)
 
+
+def get_arguments(last_page):
     parser = argparse.ArgumentParser(
         description="Script downloads books from https://tululu.org"
     )
@@ -81,7 +83,8 @@ def get_books_urls_on_page(page, books_base_url, category_url):
 def main():
     fantasy_category_url = "https://tululu.org/l55/"
     books_url = "https://tululu.org"
-    arguments = get_arguments(fantasy_category_url)
+    last_page = get_last_page_number(fantasy_category_url)
+    arguments = get_arguments(last_page)
     json_reults_directory = arguments.json_path
     if json_reults_directory != ".":
         Path(json_reults_directory).mkdir(parents=True, exist_ok=True)
