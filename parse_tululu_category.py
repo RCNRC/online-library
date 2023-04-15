@@ -140,7 +140,6 @@ def main():
                 if not arguments.skip_imgs:
                     download_image(
                         book,
-                        book_response,
                         book_url,
                         books_logo_directory
                     )
@@ -150,9 +149,10 @@ def main():
                     commentaries_directory
                 )
                 book_for_json = asdict(book)
-                book_for_json["img_src"] = f"images/"\
+                book_for_json["img_src"] = f"{arguments.dest_folder}/images/"\
                     f"{book_for_json['img_src'].split('/')[-1]}"
-                book_for_json["book_path"] = f"books/{book_index}."\
+                book_for_json["book_path"] = f"{arguments.dest_folder}/"\
+                    "books/{book_index}."\
                     f"{book_for_json['title']}.txt"
                 books.append(book_for_json)
                 failed_attempts = False

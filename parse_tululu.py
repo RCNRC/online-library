@@ -14,6 +14,7 @@ class Book:
     title: str
     author: str
     img_src: str
+    img_alt: str
     comments: list
     genres: list
 
@@ -35,6 +36,7 @@ def parse_book_page(soup) -> Book:
         )
     img_selector = ".bookimage a img"
     img_src = soup.select_one(img_selector)["src"]
+    img_alt = soup.select_one(img_selector)["alt"]
     comments_spans_selector = ".texts span"
     comments = [
         comment_span.text
@@ -42,7 +44,7 @@ def parse_book_page(soup) -> Book:
     ]
     genres_as_selector = "span.d_book a"
     genres = [genre_a.text for genre_a in soup.select(genres_as_selector)]
-    return Book(title, author, img_src, comments, genres)
+    return Book(title, author, img_src, img_alt, comments, genres)
 
 
 def download_book_commentaries(book: Book, book_index, file_directory):
@@ -70,9 +72,13 @@ def download_book(book: Book, file_directory, book_index, book_txt_url):
         file.write(response.content)
 
 
-def download_image(book: Book, response, book_full_url, file_directory):
+def download_image(book: Book, book_full_url, file_directory):
     image_path = urljoin(book_full_url, book.img_src)
     logo_name = urlsplit(image_path).path.split("/")[-1]
+
+    response = requests.get(image_path)
+    response.raise_for_status()
+    check_for_redirect(response)
 
     file_full_name = os.path.join(file_directory, logo_name)
     with open(file_full_name, "wb") as file:
@@ -113,7 +119,6 @@ def main():
                 )
                 download_image(
                     book,
-                    book_response,
                     book_full_url,
                     books_logo_directory
                 )
