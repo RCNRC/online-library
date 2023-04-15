@@ -8,7 +8,7 @@ __pycache__/
 
 # media files
 books/
-template.html
+index.html
 
 # Distribution / packaging
 .Python
