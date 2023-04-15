@@ -12,7 +12,6 @@ def form_index():
 
     books = json.loads(books_text)
     separated_books = list(chunked(books, 2))
-    print(separated_books[0])
 
     env = Environment(
         loader=FileSystemLoader('.'),
@@ -27,6 +26,7 @@ def form_index():
 
     with open('index.html', 'w', encoding="utf8") as file:
         file.write(rendered_page)
+    print("HTML page was reformed.")
 
 
 def main():

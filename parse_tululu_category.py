@@ -152,7 +152,7 @@ def main():
                 book_for_json["img_src"] = f"{arguments.dest_folder}/images/"\
                     f"{book_for_json['img_src'].split('/')[-1]}"
                 book_for_json["book_path"] = f"{arguments.dest_folder}/"\
-                    "books/{book_index}."\
+                    f"books/{book_index}."\
                     f"{book_for_json['title']}.txt"
                 books.append(book_for_json)
                 failed_attempts = False
