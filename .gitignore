@@ -9,6 +9,7 @@ __pycache__/
 # media files
 books/
 index.html
+pages/
 
 # Distribution / packaging
 .Python
