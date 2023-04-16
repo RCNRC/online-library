@@ -11,6 +11,31 @@
     <title>Hello, world!</title>
   </head>
   <body>
+    <div class="mx-auto">
+      <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+          {% if current_page == 1 %}
+            <li class="page-item" style="pointer-events: none;"><a class="page-link" href="index{{ current_page - 1 }}.html" style="color: rgb(97, 97, 97);">Назад</a></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="index{{ current_page - 1 }}.html">Назад</a></li>
+          {% endif %}
+          {% for pages_number in pages %}
+              {% if current_page == pages_number %}
+                <li class="page-item active" aria-current="page">
+                  <a class="page-link" href="index{{ pages_number }}.html">{{ pages_number }}<span class="sr-only">(current)</span></a>
+                </li>
+              {% else %}
+                <li class="page-item"><a class="page-link" href="index{{ pages_number }}.html">{{ pages_number }}</a></li>
+              {% endif %}
+          {% endfor %}
+          {% if current_page == last_page %}
+            <li class="page-item" style="pointer-events: none;"><a class="page-link" href="index{{ current_page + 1 }}.html" style="color: rgb(97, 97, 97);">Вперёд</a></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="index{{ current_page + 1 }}.html">Вперёд</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
     {% for books in separated_books %}
       <div class="container">
         <div class="row">
