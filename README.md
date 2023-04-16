@@ -1,8 +1,9 @@
 # online-library
 
-Это 2 скрипта, оба скачивают книги с [книжного сайта](https://tululu.org):
+Это 3 скрипта, первые два скачивают книги с [книжного сайта](https://tululu.org):
 1. `parse_tululu.py` скачивает по номерам книги, их обложки и комментарии,
 2. `parse_tululu_category.py` скачивает по номерам страниц раздела фантастики книги, их обложки, комментарии и создаёт доп файл формата .json куда помещает информацию по всем скачанным книгам.
+3. `render_website.py` прогружает страницу на которой отображает все скачанные книги. Начальная страница: [http://127.0.0.1:5500/pages/index1.html](http://127.0.0.1:5500/pages/index1.html).
 
 ## Подготовка к использованию
 
@@ -54,3 +55,23 @@ book (id=17) was not found
 book (url=https://tululu.org/b768/, id=2) was not found
 book (url=https://tululu.org/b10768/, id=23) was not found
 ```
+
+### скрипт render_website.py
+
+Скрипт запускается как `python3` скрипт с необязательным параметром:
+1. `--json_path` - устанавливает директорию, из которой будет прочитан файл формата .json с информацией по всем скачанным книгам. По умолчанию текущая директория.
+
+При запуске создаёт несколько страниц, на которых отображена информаци по книгам и ссылка на чтение самих книг.
+
+Пример запуска с указанием чтения файла .json из директории "./books":
+```comandline
+python3 render_website.py --json_path ./books
+HTML page was reformed.
+HTML page was reformed.
+[I 230416 05:42:49 server:335] Serving on http://127.0.0.1:5500
+[I 230416 05:42:49 handlers:62] Start watching changes
+[I 230416 05:42:49 handlers:64] Start detecting changes
+```
+
+Пример внешнего вида сайта:  
+![example](./doc/site_example.png)

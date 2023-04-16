@@ -4,10 +4,25 @@ from livereload import Server
 from more_itertools import chunked
 from pathlib import Path
 from math import ceil
+import argparse
 
 
-def form_index(pages_directory):
-    with open("./books/books.json", "rb") as my_file:
+def get_arguments():
+    parser = argparse.ArgumentParser(
+        description="Script render site to show downloaded books from https://tululu.org"
+    )
+    parser.add_argument(
+        "--json_path",
+        required=False,
+        help="directory for results in json format",
+        type=str,
+        default=".",
+    )
+    return parser.parse_args()
+
+
+def form_index(pages_directory, json_directory):
+    with open(f"{json_directory}/books.json", "rb") as my_file:
         books_text = my_file.read()
 
     books = json.loads(books_text)
@@ -45,11 +60,15 @@ def form_index(pages_directory):
 
 
 def main():
+    arguments = get_arguments()
     pages_directory = "./pages"
     Path(pages_directory).mkdir(parents=True, exist_ok=True)
-    form_index(pages_directory)
+    form_index(pages_directory, arguments.json_path)
     server = Server()
-    server.watch('template.html', form_index(pages_directory))
+    server.watch(
+        'template.html',
+        form_index(pages_directory, arguments.json_path)
+    )
     server.serve(root='.')
 
 
